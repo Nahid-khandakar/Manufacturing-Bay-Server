@@ -25,7 +25,7 @@ async function run() {
     try {
         await client.connect();
 
-        const partsCollection = client.db("parts-collection").collection("parts");
+        const partsCollection = client.db("mfg-bay").collection("parts-collection");
 
 
         app.get('/parts', async (req, res) => {
