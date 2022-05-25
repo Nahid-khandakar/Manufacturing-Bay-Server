@@ -47,6 +47,7 @@ async function run() {
         const partsCollection = client.db("mfg-bay").collection("parts-collection");
         const orderPartsCollection = client.db("mfg-bay").collection("order-collection");
         const userCollection = client.db("mfg-bay").collection("users");
+        const reviewCollection = client.db("mfg-bay").collection("Reviews");
 
 
         //get all parts in home section
@@ -128,6 +129,15 @@ async function run() {
             //token send
             const token = jwt.sign({ email: email }, process.env.ACCESS_TOKEN, { expiresIn: '6h' })
             res.send({ result, token: token })
+        })
+
+
+        app.post('/userReview', verifyJwt, async (req, res) => {
+            const review = req.body
+            console.log(review)
+            const doc = { email: review.email, rating: review.rating, review: review.rating }
+            const result = await reviewCollection.insertOne(doc)
+            res.send(result)
         })
 
 
