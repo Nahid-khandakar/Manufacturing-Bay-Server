@@ -78,6 +78,16 @@ async function run() {
             else {
                 return res.status(403).send({ message: 'forbidden' })
             }
+
+        })
+
+
+        app.delete('/orders/:email', verifyJwt, async (req, res) => {
+            const email = req.params.email
+            const filter = { purchaseEmail: email }
+            const result = await orderPartsCollection.deleteOne(filter)
+            res.send(result)
+
         })
 
 
