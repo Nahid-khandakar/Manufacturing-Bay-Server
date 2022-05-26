@@ -47,7 +47,7 @@ async function run() {
         const partsCollection = client.db("mfg-bay").collection("parts-collection");
         const orderPartsCollection = client.db("mfg-bay").collection("order-collection");
         const userCollection = client.db("mfg-bay").collection("users");
-        const reviewCollection = client.db("mfg-bay").collection("Reviews");
+        const reviewCollection = client.db("mfg-bay").collection("reviews");
 
 
         //get all parts in home section
@@ -132,10 +132,18 @@ async function run() {
         })
 
 
+
+        app.get('/userReview', verifyJwt, async (req, res) => {
+            const query = {}
+            const cursor = reviewCollection.find(query);
+            const result = await cursor.toArray()
+            res.send(result)
+        })
+
         app.post('/userReview', verifyJwt, async (req, res) => {
-            const review = req.body
-            console.log(review)
-            const doc = { email: review.email, rating: review.rating, review: review.rating }
+            const userReview = req.body
+            console.log(userReview)
+            const doc = { name: userReview.name, email: userReview.email, rating: userReview.rating, review: userReview.review }
             const result = await reviewCollection.insertOne(doc)
             res.send(result)
         })
