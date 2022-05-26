@@ -249,7 +249,7 @@ async function run() {
 
 
 
-        app.get('/userReview', verifyJwt, async (req, res) => {
+        app.get('/userReview', async (req, res) => {
             const query = {}
             const cursor = reviewCollection.find(query);
             const result = await cursor.toArray()
