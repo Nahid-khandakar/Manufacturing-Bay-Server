@@ -4,13 +4,12 @@ const cors = require('cors')
 require('dotenv').config()
 const jwt = require('jsonwebtoken');
 const port = process.env.PORT || 5000
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
 
 
 app.use(cors())
+app.use(express.static("public"));
 app.use(express.json());
-
-// bay-admin
-// KqgD6FctvwBJu45G
 
 
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
@@ -49,6 +48,9 @@ async function run() {
         const userCollection = client.db("mfg-bay").collection("users");
         const reviewCollection = client.db("mfg-bay").collection("reviews");
         const profileCollection = client.db("mfg-bay").collection("users-profile");
+        const paymentsCollection = client.db("mfg-bay").collection("payments");
+
+
 
         //verify admin
         const verifyAdmin = async (req, res, next) => {
@@ -61,6 +63,20 @@ async function run() {
                 res.status(403).send({ message: 'forbidden' })
             }
         }
+
+
+        // for stripe
+        app.post('/create-payment-intent', verifyJwt, async (req, res) => {
+            const service = req.body;
+            const price = service.price;
+            const amount = price * 100;
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: 'usd',
+                payment_method_types: ['card']
+            });
+            res.send({ clientSecret: paymentIntent.client_secret })
+        });
 
         //get user and make admin
         app.get('/user', verifyJwt, async (req, res) => {
@@ -131,6 +147,30 @@ async function run() {
             res.send(result)
         })
 
+        app.patch('/orders/:id', verifyJwt, async (req, res) => {
+            const id = req.params.id
+            const payment = req.body
+            const filter = { _id: ObjectId(id) }
+            const updateDoc = {
+                $set: {
+                    paid: true,
+                    transactionId: payment.transactionId
+                }
+            }
+
+            const updatedBooking = await orderPartsCollection.updateOne(filter, updateDoc)
+            const result = await paymentsCollection.insertOne(payment)
+
+            res.send(updateDoc)
+        })
+
+
+        app.get('/orders/:id', verifyJwt, async (req, res) => {
+            const id = req.params.id
+            const query = { _id: ObjectId(id) }
+            const result = await orderPartsCollection.findOne(query)
+            res.send(result)
+        })
 
         app.delete('/orders/:email', verifyJwt, async (req, res) => {
             const email = req.params.email
