@@ -123,6 +123,14 @@ async function run() {
 
         })
 
+        app.post('/orders', verifyJwt, verifyAdmin, async (req, res) => {
+
+            const partsDetails = req.body
+            console.log(partsDetails)
+            const result = await partsCollection.insertOne(partsDetails)
+            res.send(result)
+        })
+
 
         app.delete('/orders/:email', verifyJwt, async (req, res) => {
             const email = req.params.email
