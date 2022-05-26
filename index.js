@@ -115,6 +115,23 @@ async function run() {
             res.send(result)
         })
 
+        app.delete('/parts/:id', async (req, res) => {
+            const id = req.params
+            const query = { _id: ObjectId(id) }
+            const result = await partsCollection.deleteOne(query);
+            res.send(result)
+
+        })
+
+        //set wrong api this api post part in home page
+        app.post('/parts', verifyJwt, verifyAdmin, async (req, res) => {
+
+            const partsDetails = req.body
+            console.log(partsDetails)
+            const result = await partsCollection.insertOne(partsDetails)
+            res.send(result)
+        })
+
         //get purchase data for purchase page
         app.get('/purchase/:id', async (req, res) => {
             const id = req.params
@@ -139,13 +156,23 @@ async function run() {
 
         })
 
-        app.post('/orders', verifyJwt, verifyAdmin, async (req, res) => {
-
-            const partsDetails = req.body
-            console.log(partsDetails)
-            const result = await partsCollection.insertOne(partsDetails)
+        app.get('/purchaseOrders', async (req, res) => {
+            const query = {}
+            const cursor = orderPartsCollection.find(query);
+            const result = await cursor.toArray()
             res.send(result)
+
         })
+
+        app.delete('/purchaseOrders/:id', async (req, res) => {
+            const id = req.params
+            const query = { _id: ObjectId(id) }
+            const result = await orderPartsCollection.deleteOne(query);
+            res.send(result)
+
+        })
+
+
 
         app.patch('/orders/:id', verifyJwt, async (req, res) => {
             const id = req.params.id
