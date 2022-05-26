@@ -48,6 +48,8 @@ async function run() {
         const orderPartsCollection = client.db("mfg-bay").collection("order-collection");
         const userCollection = client.db("mfg-bay").collection("users");
         const reviewCollection = client.db("mfg-bay").collection("reviews");
+        const profileCollection = client.db("mfg-bay").collection("users-profile");
+
 
 
         //get all parts in home section
@@ -142,10 +144,27 @@ async function run() {
 
         app.post('/userReview', verifyJwt, async (req, res) => {
             const userReview = req.body
-            console.log(userReview)
+            //console.log(userReview)
             const doc = { name: userReview.name, email: userReview.email, rating: userReview.rating, review: userReview.review }
             const result = await reviewCollection.insertOne(doc)
             res.send(result)
+        })
+
+
+
+        app.post('/userProfile', async (req, res) => {
+            const userProfile = req.body
+            console.log(userProfile)
+            const doc = {
+                name: userProfile.name,
+                email: userProfile.email,
+                number: userProfile.number,
+                city: userProfile.city,
+                address: userProfile.address
+            }
+            const result = await profileCollection.insertOne(doc)
+            res.send(result)
+
         })
 
 
