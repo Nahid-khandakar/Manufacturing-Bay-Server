@@ -50,6 +50,45 @@ async function run() {
         const reviewCollection = client.db("mfg-bay").collection("reviews");
         const profileCollection = client.db("mfg-bay").collection("users-profile");
 
+        //verify admin
+        const verifyAdmin = async (req, res, next) => {
+            const requester = req.decoded.email
+            const requesterAccount = await userCollection.findOne({ email: requester });
+
+            if (requesterAccount.role === 'admin') {
+                next()
+            } else {
+                res.status(403).send({ message: 'forbidden' })
+            }
+        }
+
+        //get user and make admin
+        app.get('/user', verifyJwt, async (req, res) => {
+            const users = await userCollection.find().toArray();
+            res.send(users)
+        })
+
+        //set user role as admin
+        app.put('/user/admin/:email', verifyJwt, verifyAdmin, async (req, res) => {
+            const email = req.params.email
+            console.log(email)
+            const filter = { email: email }
+            const updateDoc = {
+                $set: { role: 'admin' },
+            };
+            const result = await userCollection.updateOne(filter, updateDoc);
+            res.send(result)
+
+        })
+
+        //admin role
+        app.get('/admin/:email', async (req, res) => {
+            const email = req.params.email
+            const user = await userCollection.findOne({ email: email })
+            const isAdmin = user.role === 'admin'
+            res.send({ admin: isAdmin })
+        })
+
 
 
         //get all parts in home section
@@ -152,8 +191,8 @@ async function run() {
 
 
 
-        app.get('/userProfile/:email', verifyJwt, async (req, res) => {
-            const email = req.params.email
+        app.get('/userProfile', verifyJwt, async (req, res) => {
+            const email = req.query.email
             const query = { email: email }
             const result = await profileCollection.findOne(query)
             res.send(result)
@@ -175,8 +214,10 @@ async function run() {
             const update = await profileCollection.updateOne(filter, updateDoc, options)
 
             res.send(update)
-
         })
+
+
+
 
 
     } finally {
