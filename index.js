@@ -152,18 +152,29 @@ async function run() {
 
 
 
-        app.post('/userProfile', async (req, res) => {
-            const userProfile = req.body
-            console.log(userProfile)
-            const doc = {
-                name: userProfile.name,
-                email: userProfile.email,
-                number: userProfile.number,
-                city: userProfile.city,
-                address: userProfile.address
-            }
-            const result = await profileCollection.insertOne(doc)
+        app.get('/userProfile/:email', verifyJwt, async (req, res) => {
+            const email = req.params.email
+            const query = { email: email }
+            const result = await profileCollection.findOne(query)
             res.send(result)
+
+
+        })
+
+        app.put('/userProfile/:email', verifyJwt, async (req, res) => {
+            const email = req.params.email
+            const userProfile = req.body
+            //console.log(userProfile)
+
+            const filter = { email: email }
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: userProfile,
+            };
+
+            const update = await profileCollection.updateOne(filter, updateDoc, options)
+
+            res.send(update)
 
         })
 
